@@ -42,6 +42,10 @@ h1 {
   margin: 0 !important;
 }
 
+.form-control {
+  padding: 0px 0px;
+}
+
 #dropzone {
   padding: 30px;
   margin: 0 20% 30px;
@@ -102,7 +106,7 @@ h1 {
 }
 
 #add-step-btn{
-  margin: 10px;
+  margin-left: 10px;
 }
 
 #addStep .labels {
@@ -125,6 +129,7 @@ h1 {
 #save-seq {
   display: block;
   margin: 0 auto;
+  min-width: 250px;
 }
 .info {
   padding: 8px;
@@ -133,10 +138,10 @@ h1 {
 #gif {
   display: block;
   margin: 0 auto;
-  margin-top: 4px;
+  min-width: 250px;
 }
 #dwnld {
-  max-width: 200px;
+  max-width: 500px;
   margin: 20px auto;
   margin-left: 5px;
 }
@@ -171,25 +176,27 @@ h1 {
 }
 
 .btn-circle{
-  width: 80px;
-  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   text-align: center;
+  display: flex !important;
+  flex-direction: column;
   padding: 6px 0;
   font-size: 12px;
   line-height: 1.42;
-  border-radius: 40px;
+  border-radius: 10px;
   margin-left: 5px;
   margin-right: 5px;
 }
-.radio button{
+.radio{
   cursor:pointer;
+  overflow: hidden;
+  height: 80px;
+  width: 80px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
-.radio.selected button{
-  color: #fff;
-  background-color: #5cb85c;
-  border-color: #5cb85c;
-  outline: none;
-}
+
 .radio-group {
   margin-bottom: 20px;
 }
@@ -206,4 +213,20 @@ h1 {
   min-width:14rem;
   text-align:center;
   display:none;
+}
+
+.no-border {
+  border: 0px;
+}
+
+.i-over {
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  z-index: 2;
+  color: white;
+}
+
+.i-small {
+  left: 25px;
 }
