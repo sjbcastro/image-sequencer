@@ -66161,10 +66161,13 @@ module.exports={
 
 module.exports = function Brightness(options,UI){
 
+
     var output;
 
     function draw(input,callback,progressObj){
 
+        options.brightness = parseInt(options.brightness) || 100;
+        var val = (options.brightness)/100.0;
         progressObj.stop(true);
         progressObj.overrideFlag = true;
 
@@ -66177,13 +66180,10 @@ module.exports = function Brightness(options,UI){
         var step = this;
 
         function changePixel(r, g, b, a){
-	  options.brightness = 
-	  options.brightness || 100
-            var val = (options.brightness)/100.0
 
-            r = val*r<255?val*r:255
-            g = val*g<255?val*g:255
-            b = val*b<255?val*b:255
+            r = Math.min(val*r, 255)
+            g = Math.min(val*g, 255)
+            b = Math.min(val*b, 255)
             return [r, g, b, a]
         }
 
@@ -66222,7 +66222,7 @@ module.exports={
       "brightness": {
           "type": "range",
           "desc": "% brightness for the new image",
-          "default": "100",
+          "default": "175",
           "min": "0",
           "max": "200",
           "step": "1"
@@ -66961,10 +66961,10 @@ module.exports = function CropModule(options, UI) {
     // save the input image;
     // TODO: this should be moved to module API to persist the input image
     options.step.input = input.src;
-    var parseCoordInputs = require('../../util/ParseInputCoordinates');
+    var parseCornerCoordinateInputs = require('../../util/ParseInputCoordinates');
 
-    //parse the inputs 
-    parseCoordInputs.parseCornerCoordinateInputs(options,{
+    //parse the inputs
+    parseCornerCoordinateInputs(options,{
       src: input.src,
       x: { valInp: options.x, type: 'horizontal' },
       y: { valInp: options.y, type: 'vertical' },
@@ -67136,12 +67136,12 @@ module.exports={
     "w": {
       "type": "integer",
       "desc": "Width of crop",
-      "default": "(100%)"
+      "default": "(50%)"
     },
     "h": {
       "type": "integer",
       "desc": "Height of crop",
-      "default": "(100%)"
+      "default": "(50%)"
     },
     "backgroundColor": {
       "type": "String",
@@ -67152,6 +67152,7 @@ module.exports={
   },
   "docs-link":"https://github.com/publiclab/image-sequencer/blob/main/docs/MODULES.md"
 }
+
 },{}],197:[function(require,module,exports){
 /*
  * Decodes QR from a given image.
@@ -68427,10 +68428,10 @@ module.exports = function Dynamic(options, UI, util) {
 
         var step = this;
 
-        var parseCoordInputs = require('../../util/ParseInputCoordinates');
+        var parseCornerCoordinateInputs = require('../../util/ParseInputCoordinates');
 
-        //parse the inputs 
-        parseCoordInputs.parseCornerCoordinateInputs(options, {
+        //parse the inputs
+        parseCornerCoordinateInputs(options, {
             src: input.src,
             x: { valInp: options.x, type: 'horizontal' },
             y: { valInp: options.y, type: 'vertical' },
@@ -68756,7 +68757,7 @@ module.exports={
         "saturation": {
             "type": "range",
             "desc": "saturation for the new image between 0 and 2, 0 being black and white and 2 being highly saturated",
-            "default": "0",
+            "default": "0.5",
             "min": "0",
             "max": "2",
             "step": "0.1"
