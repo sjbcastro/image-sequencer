@@ -5,18 +5,18 @@ Image Sequencer
 
 ## Why
 
-Image Sequencer is different from other image processing systems in that it's _non-destructive_: instead of modifying the original image, it **creates a new image at each step in a sequence**. This is because it:
+Image Sequencer is different from other image processing systems because it's _non-destructive_: instead of modifying the original image, it **creates a new image at each step in a sequence**. This is because it:
 
 * produces a legible trail of operations, to "show your work" for evidential, educational, or reproducibility reasons
 * makes the creation of new tools or "modules" simpler -- each must accept an input image, and produce an output image
-* allows many images to be run through the same sequence of steps
+* allows many images to run through the same sequence of steps
 * works identically in the browser, on Node.js, and on the command line
 
 ![workflow diagram](https://raw.githubusercontent.com/publiclab/image-sequencer/master/examples/images/diagram-workflows.png)
 
 It is also for prototyping some other related ideas:
 
-* filter-like image processing -- applying a transform to an image from a given source, like a proxy. I.e. [every image tile of a satellite imagery web map](https://publiclab.org/notes/warren/05-10-2018/prototype-filter-map-tiles-in-real-time-in-a-browser-with-imagesequencer-ndvi-landsat)
+* filter-like image processing -- apply a transform to an image from a given source, like a proxy. I.e. [every image tile of a satellite imagery web map](https://publiclab.org/notes/warren/05-10-2018/prototype-filter-map-tiles-in-real-time-in-a-browser-with-imagesequencer-ndvi-landsat)
 * test-based image processing -- the ability to create a sequence of steps that do the same task as some other image processing tool, provable with example before/after images to compare with
 * logging of each step to produce an evidentiary record of modifications to an original image
 * cascading changes -- change an earlier step's settings, and see those changes affect later steps
@@ -549,6 +549,10 @@ for a module. This can be used, for instance, to update the DIV with the new ima
 and remove the loading GIF generated above.
 * `onRemove` : This event is triggered when a module is removed. This can be used,
 for instance, to remove the DIV generated above.
+* `notify` : This event is triggered whenever we need to shoot a notification to the
+user-interface.For example when the step is not available, we can shoot a notification,
+by sending appropriate message.For HTML UI it adds a DOM node to the browser, for CLI 
+and node , it logs the notification output to the respective console.
 
 How to define these functions:
 
@@ -557,7 +561,8 @@ sequencer.setUI({
   onSetup: function(step) {},
   onDraw: function(step) {},
   onComplete: function(step) {},
-  onRemove: function(step) {}
+  onRemove: function(step) {},
+  notify: function(msg,id) {}
 });
 ```
 
@@ -607,3 +612,5 @@ not specified, the name of a loaded image defaults to a name like "image1",
 
 Details of all modules can be sought using `sequencer.modulesInfo()`.
 This method returns an object which defines the name and inputs of the modules. If a module name (hyphenated) is passed in the method, then only the details of that module are returned.
+
+The `notify` function takes two parameters `msg` and `id`, former being the message to be displayed on console (in case of CLI and node ) and a HTML component(in browser). The id is optional and is useful for HTML interface to give appropriate IDs.

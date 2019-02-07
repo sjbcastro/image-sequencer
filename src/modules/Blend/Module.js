@@ -1,7 +1,9 @@
 module.exports = function Dynamic(options, UI, util) {
 
-    options.func = options.func || "function(r1, g1, b1, a1, r2, g2, b2, a2) { return [ r1, g2, b2, a2 ] }";
-    options.offset = options.offset || -2;
+    var defaults = require('./../../util/getDefaults.js')(require('./info.json'));
+
+    options.func = options.func || defaults.blend;
+    options.offset = options.offset || defaults.offset;
 
     var output;
 
@@ -23,6 +25,12 @@ module.exports = function Dynamic(options, UI, util) {
 
         // save first image's pixels
         var priorStep = this.getStep(options.offset);
+
+        if (priorStep.output === undefined) {
+            this.output = input;
+            UI.notify('Offset Unavailable','offset-notification');
+            callback();
+        } 
 
         getPixels(priorStep.output.src, function(err, pixels) {
             options.firstImagePixels = pixels;
