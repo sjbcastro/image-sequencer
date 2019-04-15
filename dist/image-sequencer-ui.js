@@ -24,7 +24,7 @@ window.onload = function() {
         );
     }
     // Null option
-    addStepSelect.append('<option value="none" disabled selected>More modules...</option>');
+    addStepSelect.append('<option value="" disabled selected>Select a Module</option>');
     addStepSelect.selectize({
       sortField: 'text'
   });
@@ -119,7 +119,7 @@ window.onload = function() {
 
     var button = event.target;
     button.disabled = true;
-
+    button.innerHTML='<i class="fa fa-circle-o-notch fa-spin"></i>'
 
     try {
       // Select all images from previous steps
@@ -171,6 +171,7 @@ window.onload = function() {
           modal.modal();
 
           button.disabled = false;
+          button.innerHTML = 'View GIF';
           isWorkingOnGifGeneration = false;
         }
       });
@@ -178,6 +179,7 @@ window.onload = function() {
     catch (e) {
       console.error(e);
       button.disabled = false;
+      button.innerHTML = 'View GIF';
       isWorkingOnGifGeneration = false;
 
     }
@@ -198,8 +200,8 @@ window.onload = function() {
         step.options.step.imgElement.src = reader.result;
       else
         step.imgElement.src = reader.result;
-      insertPreview.updatePreviews(reader.result,'addStep');
-      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'insertStep');
+      insertPreview.updatePreviews(reader.result,'#addStep');
+      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'.insertDiv');
     },
     onTakePhoto: function (url) {
       var step = sequencer.steps[0];
@@ -209,19 +211,20 @@ window.onload = function() {
         step.options.step.imgElement.src = url;
       else
         step.imgElement.src = url;
-      insertPreview.updatePreviews(url,'addStep');
-      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'insertStep');
+      insertPreview.updatePreviews(url,'#addStep');
+      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'.insertDiv');
     }
   });
 
   setupCache();
 
   if (urlHash.getUrlHashParameter('src')) {
-    insertPreview.updatePreviews(urlHash.getUrlHashParameter('src'),'addStep');
+    insertPreview.updatePreviews(urlHash.getUrlHashParameter('src'),'#addStep');
   } else {
-    insertPreview.updatePreviews("images/tulips.png",'addStep');
+    insertPreview.updatePreviews("images/tulips.png",'#addStep');
   }
 };
+
 },{"./lib/cache.js":2,"./lib/defaultHtmlSequencerUi.js":3,"./lib/defaultHtmlStepUi.js":4,"./lib/insertPreview.js":5,"./lib/intermediateHtmlStepUi.js":6,"./lib/urlHash.js":8}],2:[function(require,module,exports){
 var setupCache = function() {
   if ('serviceWorker' in navigator) {
@@ -262,6 +265,7 @@ var setupCache = function() {
 }
 
 module.exports = setupCache;
+
 },{}],3:[function(require,module,exports){
 var urlHash = require('./urlHash.js');
 function DefaultHtmlSequencerUi(_sequencer, options) {
@@ -385,15 +389,15 @@ function DefaultHtmlStepUi(_sequencer, options) {
     step.ui =
       '\
       <div class="container-fluid step-container">\
-        <form class="input-form">\
           <div class="panel panel-default">\
             <div class="panel-heading">\
               <div class="trash-container pull-right"></div>\
               <h3 class="panel-title">' +  
-                '<span class="toggle">' +step.name + ' <span class="caret"></span>\
+                '<span class="toggle">' +step.name + ' <span class="caret toggleIcon rotated"></span>\
                  <span class="load-spin pull-right" style="display:none;padding:1px 8px;"><i class="fa fa-circle-o-notch fa-spin"></i></span>\
               </h3>\
             </div>\
+            <form class="input-form">\
             <div class="panel-body cal collapse in">\
               <div class="row step">\
                 <div class="col-md-4 details container-fluid">\
@@ -410,8 +414,8 @@ function DefaultHtmlStepUi(_sequencer, options) {
               </div>\
             </div>\
             <div class="panel-footer cal collapse in"></div>\
+            </form>\
           </div>\
-        </form>\
       </div>';
 
     var tools =
@@ -493,8 +497,8 @@ function DefaultHtmlStepUi(_sequencer, options) {
       );
       $(step.ui.querySelector("div.panel-footer")).prepend(
         '<button class="pull-right btn btn-default btn-sm insert-step" >\
-      <i class="fa fa-plus"></i> Insert Step\
-      </button>'
+          <span class="insert-text"><i class="fa fa-plus"></i> Insert Step</span><span class="no-insert-text" style="display:none">Close</span>\
+        </button>'
       );  
     }
 
@@ -509,9 +513,9 @@ function DefaultHtmlStepUi(_sequencer, options) {
       // Insert the step's UI in the right place
       if (stepOptions.index == _sequencer.steps.length) {
         stepsEl.appendChild(step.ui);
-        $("#steps .main:nth-last-child(1) .insert-step").prop('disabled',true);
-        if($("#steps .main:nth-last-child(2)"))
-        $("#steps .main:nth-last-child(2) .insert-step").prop('disabled',false);
+        $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
+        if($("#steps .step-container:nth-last-child(2)"))
+        $("#steps .step-container:nth-last-child(2) .insert-step").prop('disabled',false);
       } else {
         stepsEl.insertBefore(step.ui, $(stepsEl).children()[stepOptions.index]);
       }
@@ -520,7 +524,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
       $("#load-image").append(step.ui);
     }
     $(step.ui.querySelector(".toggle")).on("click", () => {
-      $(step.ui.querySelector('.toggleIcon')).toggleClass('fa-caret-up').toggleClass('fa-caret-down');
+      $(step.ui.querySelector('.toggleIcon')).toggleClass('rotated');
        $(step.ui.querySelectorAll(".cal")).collapse('toggle');
     });
     
@@ -660,7 +664,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
 
   function onRemove(step) {
     step.ui.remove();
-    $("#steps .main:nth-last-child(1) .insert-step").prop('disabled',true);
+    $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
     $('div[class*=imgareaselect-]').remove();
   }
 
@@ -713,7 +717,7 @@ function generatePreview(previewStepName, customValues, path, selector) {
       img.src = src;
       $(img).css("max-width", "200%");
       $(img).css("transform", "translateX(-20%)");
-      var stepDiv = $('#'+selector+' .row').find('div').each(function() {
+      $(selector + ' .radio-group').find('div').each(function() {
         if ($(this).find('div').attr('data-value') === previewStepName) {
           $(this).find('div').append(img);
         }
@@ -732,7 +736,7 @@ function generatePreview(previewStepName, customValues, path, selector) {
   }
 
   function updatePreviews(src, selector) {
-    $('#'+selector+' img').remove();
+    $(selector+' img').remove();
 
     var previewSequencerSteps = {
       "resize": "125%",
@@ -765,85 +769,109 @@ var urlHash = require('./urlHash.js'),
 
 function IntermediateHtmlStepUi(_sequencer, step, options) {
   function stepUI() {
-    return '<div class="row insertDiv">\
-        <div class="col-md-6 col-md-offset-2" style="margin-top:5%">\
-        <section id="insertStep" class="panel panel-primary">\
-          <div class="form-inline">\
-            <div class="panel-body">\
-              <p class="info">Select a new module to add to your sequence.</p>\
-              <div class="row center-align radio-group">\
-              <div>\
-              <div class="radio" data-value="resize">\
-              <i class="fa fa-arrows-alt fa-4x i-over"></i>\
+    return '<div class="row insertDiv collapse">\
+          <section class="panel panel-primary .insert-step">\
+            <button class="btn btn-default close-insert-box"><i class="fa fa-times" aria-hidden="true"></i> Close</button>\
+            <div class="form-inline">\
+              <div class="panel-body">\
+                <p class="info">Select a new module to add to your sequence.</p>\
+                <div class="row center-align radio-group">\
+                  <div>\
+                    <div class="radio" data-value="resize">\
+                      <i class="fa fa-arrows-alt fa-4x i-over"></i>\
+                    </div>\
+                    <p>Resize</p>\
+                  </div>\
+                  <div>\
+                    <div class="radio" data-value="brightness">\
+                      <i class="fa fa-sun-o fa-4x i-over"></i>\
+                    </div>\
+                    <p>Brightness</p>\
+                  </div>\
+                  <div>\
+                    <div class="radio" data-value="contrast">\
+                      <i class="fa fa-adjust fa-4x i-over"></i>\
+                    </div>\
+                    <p>Contrast</p>\
+                  </div>\
+                  <div>\
+                    <div class="radio" data-value="saturation">\
+                      <i class="fa fa-tint fa-4x i-over i-small"></i>\
+                    </div>\
+                    <p>Saturation</p>\
+                  </div>\
+                  <div>\
+                    <div class="radio" data-value="rotate">\
+                      <i class="fa fa-rotate-right fa-4x i-over"></i>\
+                    </div>\
+                    <p>Rotate</p>\
+                  </div>\
+                  <div>\
+                    <div class="radio" data-value="crop">\
+                      <i class="fa fa-crop fa-4x i-over"></i>\
+                    </div>\
+                    <p>Crop</p>\
+                  </div>\
+                </div>\
+                <div class="row center-align">\
+                  <div class="col-md-8">\
+                    <select class="insert-step-select">\
+                      <!-- The default null selection has been appended manually in demo.js\
+                      This is because the options in select are overritten when options are appended.-->\
+                    </select>\
+                  <div>\
+                  <div class="col-md-4">\
+                    <button class="btn btn-success btn-lg insert-save-btn add-step-btn" name="add">Add Step</button>\
+                  <div>\
+                </div>\
+              </div>\
             </div>\
-                <p>Resize</p>\
-                </div>\
-                <div>\
-                <div class="radio" data-value="brightness">\
-                <i class="fa fa-sun-o fa-4x i-over"></i>\
-              </div>\
-                  <p>Brightness</p>\
-                </div>\
-                <div>\
-                <div class="radio" data-value="contrast">\
-                <i class="fa fa-adjust fa-4x i-over"></i>\
-              </div>\
-                  <p>Contrast</p>\
-                </div>\
-                <div>\
-                <div class="radio" data-value="saturation">\
-                <i class="fa fa-tint fa-4x i-over i-small"></i>\
-              </div>\
-                  <p>Saturation</p>\
-                </div>\
-                <div>\
-                <div class="radio" data-value="rotate">\
-                <i class="fa fa-rotate-right fa-4x i-over"></i>\
-              </div>\
-                  <p>Rotate</p>\
-                </div>\
-                <div>\
-                <div class="radio" data-value="crop">\
-                <i class="fa fa-crop fa-4x i-over"></i>\
-              </div>\
-                  <p>Crop</p>\
-                </div>\
-              </div>\
-              <div class="row center-align">\
-                <div class="col-md-8">\
-                <select class="form-control input-lg" id="selectStep">\
-                  <!-- The default null selection has been appended manually in demo.js\
-                  This is because the options in select are overritten when options are appended.-->\
-                </select>\
-                <div>\
-                <div class="col-md-4">\
-                <button class="btn btn-success btn-lg" name="add" id="add-step-btn">Add Step</button>\
-                <div>\
-              </div>\
-            </div>\
-          </div>\
-        </section>\
+          </section>\
         </div>';
   }
 
 
   function selectNewStepUi() {
-    var m = $("#insertStep select").val();
-    $("#insertStep .info").html(_sequencer.modulesInfo(m).description);
-    $("#insertStep #add-step-btn").prop("disabled", false);
+    var insertSelect = $(step.ui.querySelector('.insert-step-select'))
+    var m = insertSelect.val();
+    $(step.ui.querySelector('.insertDiv .info')).html(_sequencer.modulesInfo(m).description);
+    $(step.ui.querySelector('.insertDiv .add-step-btn')).prop("disabled", false);
   }
+    
+    
+  var toggleDiv = function(callback = function(){}){
+    $(step.ui.querySelector('.insertDiv')).collapse('toggle');
+    if ($(step.ui.querySelector('.insert-text')).css('display') != "none"){
+      $(step.ui.querySelector('.insert-text')).fadeToggle(200, function(){$(step.ui.querySelector('.no-insert-text')).fadeToggle(200, callback)})
+    }
+    else {
+      $(step.ui.querySelector('.no-insert-text')).fadeToggle(200, function(){$(step.ui.querySelector('.insert-text')).fadeToggle(200, callback)})
+    }
+  }
+
   insertStep = function (id) {
     var modulesInfo = _sequencer.modulesInfo();
     var parser = new DOMParser();
     var addStepUI = stepUI();
     addStepUI = parser.parseFromString(addStepUI, "text/html").querySelector("div")
-    step.ui
+
+    if ($(step.ui.querySelector('.insertDiv')).length > 0){
+      toggleDiv();
+    }
+    else {
+      step.ui
       .querySelector("div.step")
       .insertAdjacentElement('afterend',
         addStepUI
       );
-    insertPreview.updatePreviews(step.output,'insertStep');
-    var insertStepSelect = $("#insertStep select");
+      toggleDiv(function(){
+        insertPreview.updatePreviews(step.output, '.insertDiv');
+      });
+    }
+
+    $(step.ui.querySelector('.insertDiv .close-insert-box')).off('click').on('click', function(){toggleDiv(function(){})});
+    
+    var insertStepSelect = $(step.ui.querySelector('.insert-step-select'));
     insertStepSelect.html("");
     // Add modules to the insertStep dropdown
     for (var m in modulesInfo) {
@@ -852,33 +880,33 @@ function IntermediateHtmlStepUi(_sequencer, step, options) {
           '<option value="' + m + '">' + modulesInfo[m].name + "</option>"
         );
     }
-    $('#insertStep #add-step-btn').selectize({
+    insertStepSelect.selectize({
       sortField: 'text'
     });
-    $('#insertStep #add-step-btn').prop('disabled', true);
-
-    insertStepSelect.append('<option value="none" disabled selected>More modules...</option>');
-    $('#insertStep .radio-group .radio').on("click", function () {
+    $(step.ui.querySelector('.inserDiv .add-step-btn')).prop('disabled', true);
+    
+    insertStepSelect.append('<option value="" disabled selected>Select a Module</option>');
+    $(step.ui.querySelector('.insertDiv .radio-group .radio')).on("click", function () {
       $(this).parent().find('.radio').removeClass('selected');
       $(this).addClass('selected');
       newStep = $(this).attr('data-value');
-      insertStepSelect.val(newStep);
+      $(step.ui.querySelector('.insert-step-select')).val(newStep);
       selectNewStepUi();
       insert(id);
       $(this).removeClass('selected');
     });
-    $(step.ui.querySelector("#insertStep select")).on('change', selectNewStepUi);
-    $(step.ui.querySelector("#insertStep #add-step-btn")).on('click', function () { insert(id) });
+    insertStepSelect.on('change', selectNewStepUi);
+    $(step.ui.querySelector('.insertDiv .add-step-btn')).on('click', function () { insert(id) });
   }
 
   function insert(id) {
 
     options = options || {};
-    var insertStepSelect = $("#insertStep select");
+    var insertStepSelect = $(step.ui.querySelector('.insert-step-select'));
     if (insertStepSelect.val() == "none") return;
 
     var newStepName = insertStepSelect.val()
-    $('div .insertDiv').remove();
+    toggleDiv();
     var sequenceLength = 1;
     if (sequencer.sequences[newStepName]) {
       sequenceLength = sequencer.sequences[newStepName].length;
