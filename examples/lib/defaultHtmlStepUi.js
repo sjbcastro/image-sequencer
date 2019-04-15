@@ -26,15 +26,15 @@ function DefaultHtmlStepUi(_sequencer, options) {
     step.ui =
       '\
       <div class="container-fluid step-container">\
-        <form class="input-form">\
           <div class="panel panel-default">\
             <div class="panel-heading">\
               <div class="trash-container pull-right"></div>\
               <h3 class="panel-title">' +  
-                '<span class="toggle">' +step.name + ' <span class="caret"></span>\
+                '<span class="toggle">' +step.name + ' <span class="caret toggleIcon rotated"></span>\
                  <span class="load-spin pull-right" style="display:none;padding:1px 8px;"><i class="fa fa-circle-o-notch fa-spin"></i></span>\
               </h3>\
             </div>\
+            <form class="input-form">\
             <div class="panel-body cal collapse in">\
               <div class="row step">\
                 <div class="col-md-4 details container-fluid">\
@@ -51,8 +51,8 @@ function DefaultHtmlStepUi(_sequencer, options) {
               </div>\
             </div>\
             <div class="panel-footer cal collapse in"></div>\
+            </form>\
           </div>\
-        </form>\
       </div>';
 
     var tools =
@@ -134,8 +134,8 @@ function DefaultHtmlStepUi(_sequencer, options) {
       );
       $(step.ui.querySelector("div.panel-footer")).prepend(
         '<button class="pull-right btn btn-default btn-sm insert-step" >\
-      <i class="fa fa-plus"></i> Insert Step\
-      </button>'
+          <span class="insert-text"><i class="fa fa-plus"></i> Insert Step</span><span class="no-insert-text" style="display:none">Close</span>\
+        </button>'
       );  
     }
 
@@ -150,9 +150,9 @@ function DefaultHtmlStepUi(_sequencer, options) {
       // Insert the step's UI in the right place
       if (stepOptions.index == _sequencer.steps.length) {
         stepsEl.appendChild(step.ui);
-        $("#steps .main:nth-last-child(1) .insert-step").prop('disabled',true);
-        if($("#steps .main:nth-last-child(2)"))
-        $("#steps .main:nth-last-child(2) .insert-step").prop('disabled',false);
+        $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
+        if($("#steps .step-container:nth-last-child(2)"))
+        $("#steps .step-container:nth-last-child(2) .insert-step").prop('disabled',false);
       } else {
         stepsEl.insertBefore(step.ui, $(stepsEl).children()[stepOptions.index]);
       }
@@ -161,7 +161,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
       $("#load-image").append(step.ui);
     }
     $(step.ui.querySelector(".toggle")).on("click", () => {
-      $(step.ui.querySelector('.toggleIcon')).toggleClass('fa-caret-up').toggleClass('fa-caret-down');
+      $(step.ui.querySelector('.toggleIcon')).toggleClass('rotated');
        $(step.ui.querySelectorAll(".cal")).collapse('toggle');
     });
     
@@ -301,7 +301,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
 
   function onRemove(step) {
     step.ui.remove();
-    $("#steps .main:nth-last-child(1) .insert-step").prop('disabled',true);
+    $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
     $('div[class*=imgareaselect-]').remove();
   }
 
