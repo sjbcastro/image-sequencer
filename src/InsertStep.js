@@ -7,7 +7,7 @@ function InsertStep(ref, index, name, o) {
   }
 
   if (ref.detectStringSyntax(name)) {
-    return ref.stringToSteps(name)
+    return ref.stringToSteps(name);
   }
 
   function insertStep(index, name, o_) {
@@ -21,15 +21,17 @@ function InsertStep(ref, index, name, o) {
     o.number = ref.options.sequencerCounter++; //Gives a Unique ID to each step
     o.name = o_.name || name || moduleInfo.name;
     o.description = o_.description || moduleInfo.description;
+    o.moduleInfo = o_.moduleInfo || moduleInfo;
     o.selector = o_.selector || 'ismod-' + name;
     o.container = o_.container || ref.options.selector;
     o.inBrowser = ref.options.inBrowser;
-
+    o.useWasm = (ref.options.useWasm === false) ? false : true;
     if (index == -1) index = ref.steps.length;
 
     o.step = {
       name: o.name,
       description: o.description,
+      moduleInfo: o.moduleInfo,
       ID: o.number,
       inBrowser: ref.options.inBrowser,
       ui: ref.options.ui,
@@ -43,7 +45,7 @@ function InsertStep(ref, index, name, o) {
         let step = stepsArray[i];
         ref.insertSteps(index + Number.parseInt(i), step['name'], step['options']);
       }
-    }
+    };
 
     // Tell UI that a step has been set up.
     o = o || {};

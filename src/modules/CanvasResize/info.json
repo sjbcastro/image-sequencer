@@ -1,5 +1,5 @@
 {
-    "name": "Resize Canvas",
+    "name": "canvas-resize",
     "description": "This module resizes the canvas and overlays the ouput of the previous step at given location",
     "inputs": {
         "width": {
@@ -22,5 +22,6 @@
             "desc": "Y-cord of the top left corner of the image on the canvas",
             "default": 500
         }
-    }
+    },
+    "docs-link":"https://github.com/publiclab/image-sequencer/blob/main/docs/MODULES.md#canvas-resize-module"
 }

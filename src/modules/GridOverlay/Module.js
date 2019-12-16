@@ -1,6 +1,6 @@
 
-module.exports = function GridOverlay(options,UI) {
-  
+module.exports = function GridOverlay(options, UI) {
+
   var output;
 
   function draw(input, callback, progressObj) {
@@ -9,18 +9,11 @@ module.exports = function GridOverlay(options,UI) {
     progressObj.overrideFlag = true;
 
     var step = this;
-    if (!options.step.inBrowser) { // This module is only for browser
-     this.output = input;
-     callback();
-   }
-   else{
-    var priorStep = this.getStep(-1); // get the previous step to add text onto it.
 
     function extraManipulation(pixels) {
-     //if (options.step.inBrowser) 
-     pixels = require('./GridOverlay')(pixels, options,priorStep);
-     return pixels
-   }
+      pixels = require('./GridOverlay')(pixels, options);
+      return pixels;
+    }
 
     function output(image, datauri, mimetype) {
 
@@ -31,20 +24,22 @@ module.exports = function GridOverlay(options,UI) {
 
     return require('../_nomodule/PixelManipulation.js')(input, {
       output: output,
+      ui: options.step.ui,
       extraManipulation: extraManipulation,
       format: input.format,
       image: options.image,
       inBrowser: options.inBrowser,
-      callback: callback
+      callback: callback,
+      useWasm: options.useWasm
     });
 
+
   }
- }
 
   return {
     options: options,
     draw: draw,
     output: output,
     UI: UI
-  }
-}
+  };
+};

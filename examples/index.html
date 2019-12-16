@@ -27,12 +27,16 @@
   <script src="../src/ui/prepareDynamic.js"></script>
   <script src="../dist/image-sequencer.js" charset="utf-8"></script>
   <script src="../dist/image-sequencer-ui.js" charset="utf-8"></script>
+  <script src="../node_modules/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.js"></script>
   <!-- for crop module: -->
   <script src="../node_modules/imgareaselect/jquery.imgareaselect.dev.js"></script>
   <script src="../node_modules/gifshot/dist/gifshot.min.js" type="text/javascript"></script>
 
   <!-- Download.js for large files -->
-  <script src="../node_modules/downloadjs/download.min.js" type="text/javascript" />
+  <script src="../node_modules/downloadjs/download.min.js" type="text/javascript" ></script>
+
+  <!-- jspdf to enable save image as pdf -->
+  <script src="../node_modules/jspdf/dist/jspdf.min.js" type="text/javascript" ></script>
 
   <script src="lib/scrollToTop.js"></script>
   <script src="../node_modules/selectize/dist/js/standalone/selectize.min.js"></script>
@@ -41,7 +45,8 @@
 <body>
 
   <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+  <link href="../node_modules/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css" rel="stylesheet">
+
   <link rel="stylesheet" href="demo.css">
   <link href="../node_modules/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <link href="../node_modules/selectize/dist/css/selectize.default.css" rel="stylesheet">
@@ -53,7 +58,7 @@
 
   <div class="container-fluid">
 
-    <header class="text-center">
+    <header class="text-center" style="min-width: 450px">
       <h1><a href="/" target='_blank' class="name-header">Image Sequencer</a></h1>
       <p>
         A pure JavaScript sequential image processing system, inspired by storyboards. Instead of modifying the original
@@ -71,13 +76,13 @@
     </header>
 
     <div id="dropzone" class="dropzone">
-      <p>
+      <p id="dropzone-text">
         <i>Select or drag in an image to start!</i>
       </p>
       <center>
         <input type="file" id="fileInput" value="" accept="image/*"><br />
         <button type="button" id="take-photo" class="btn btn-primary btn-block btn-lg ">Take a Photo</button>
-        <video id="video" width="400" height="300" style="display:none"></video>
+        <video id="video" width="100%" height="100%" style="display:none"></video>
         <a href="#" id="capture" style="display:none" class="btn btn-primary btn-md">Click Picture</a>
         <a href="#" id="close" style="display:none" class="btn btn-default btn-md">Close</a>
         <canvas id="canvas" width="400" height="300" style="display:none"></canvas>
@@ -89,7 +94,7 @@
     </section>
 
     <hr />
-    <p class="alert alert-success savesequencemsg">Saved Sequence Success. Sequence can be found among other modules.
+    <p class="alert alert-success savesequencemsg">Saved Sequence Success. Sequence can be found among other modules in browser's localStorage.
     </p>
     <div class="row">
       <div class="col-sm-8">
@@ -137,16 +142,16 @@
                   <p>Crop</p>
                 </div>
               </div>
-              <div class="row center-align">
-                <div class="col-md-8">
+              <div class="row justify-content-center">
+                <div class="col-lg-8">
 
-                  <select id="selectStep">
+                  <select id="selectStep" class="text-center">
                     <!-- The default null selection has been appended manually in demo.js
               This is because the options in select are overritten when options are appended.-->
                   </select>
                 </div>
-                <div class="col-md-4">
-                  <button class="btn btn-success btn-lg" name="add" id="add-step-btn">Add Step</button></div>
+                <div class="col-lg-4">
+                  <button class="btn btn-primary btn-lg" name="add" id="add-step-btn">Add Step</button></div>
               </div>
               <div class="row center-align">
                 <button id="resetButton" class="btn btn-default btn-lg"
@@ -185,11 +190,13 @@
             <div class="panel-body">
               <div style="text-align:center;">
                 <h2 style="margin-top:20px">Save</h2>
-                <select class="form-control input-md" id="selectSaveOption" style="margin-top:20px">
-                  <option>Save as PNG</option>
-                  <option>Save as GIF (all steps)</option>
-                  <option>Save sequence</option>
-                  <option>Save sequence string</option>
+                <select class="form-control input-md mouse" id="selectSaveOption" style="margin-top:20px">
+                  <option value="save-image">Save as PNG</option>
+                  <option value="save-gif">Save as GIF (all steps)</option>
+                  <option value="save-pdf">Save as PDF</option>
+                  <option value="save-seq">Save sequence</option>
+                  <option value="save-seq-string">Save sequence string</option>
+                  <option value="save-to-publiclab.org">Save to PublicLab.org</option>>
                 </select>
                 <p><button id="saveButton" class="btn btn-primary btn-lg save-button">Save</button></p>
                 <p><button class="btn btn-default btn-lg js-view-as-gif" id="gif">Preview GIF</button></p>
@@ -230,6 +237,7 @@
         var sequencer;
       })
     </script>
+    <script async src="../node_modules/opencv.js/opencv.js" type="text/javascript"></script>
 
 </body>
 

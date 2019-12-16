@@ -1,5 +1,5 @@
 {
-    "name": "WebGl Distort",
+    "name": "webgl-distort",
     "requires": [
         "webgl"
     ],
@@ -26,5 +26,5 @@
             "default": "100,767"
         }
     },
-    "docs-link":"https://github.com/publiclab/image-sequencer/blob/main/docs/MODULES.md#webgl-distort"
+    "docs-link":"https://github.com/publiclab/image-sequencer/blob/main/docs/MODULES.md#webgl-distort-module"
 }

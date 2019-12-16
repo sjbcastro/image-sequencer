@@ -1,36 +1,33 @@
-module.exports = exports = function(pixels, options,priorstep){
-    var defaults = require('./../../util/getDefaults.js')(require('./info.json'));
+module.exports = exports = function(pixels, options){
+  var defaults = require('./../../util/getDefaults.js')(require('./info.json'));
+  const pixelSetter = require('../../util/pixelSetter.js');
 
-    options.color = options.color || defaults.color;
-    options.x = options.x || defaults.x;
-    options.y = options.y || defaults.y;
+  if(Number(options.x) == 0){
+    options.x = 1;
+  }
+  if( Number(options.y) == 0) {
+    options.y = 1;
+  }
 
-        var img = $(priorstep.imgElement);
-        if(Object.keys(img).length === 0){
-            img = $(priorstep.options.step.imgElement);
-        }
-        var canvas = document.createElement("canvas");
-        canvas.width = pixels.shape[0]; //img.width();
-        canvas.height = pixels.shape[1]; //img.height();
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img[0], 0, 0);
-        var p=2;
-        function drawBoard(){
-            for (var x = 0; x <= canvas.width; x+=options.x) {
-                ctx.moveTo(0.5 + x + p, p);
-                ctx.lineTo(0.5 + x + p, canvas.height + p);
-            }
-            for (var y = 0; y <= canvas.height; y+=options.y) {
-                ctx.moveTo(p, 0.5 + y + p);
-                ctx.lineTo(canvas.width + p, 0.5 + y + p);
-            }
-            ctx.strokeStyle = options.color;
-            ctx.stroke();
-        }
-        
-        drawBoard();
+  options.x = Math.abs(Number(options.x)) || defaults.x;
+  options.y = Math.abs(Number(options.y)) || defaults.y;
+  color = options.color || defaults.color;
+  color = color.substring(color.indexOf('(') + 1, color.length - 1); // extract only the values from rgba(_,_,_,_)
+  color = color.split(',');
 
-    var myImageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-    pixels.data = myImageData.data
-    return pixels;
-}
+  for(var x = 0; x < pixels.shape[0]; x += options.x){
+    for(var y = 0 ; y < pixels.shape[1]; y++){
+      pixelSetter(x, y, [color[0], color[1], color[2]], pixels); // to remove 4th channel - pixels.set(x, y, 3, color[3]);
+                
+    }
+  }
+    
+  for(var y = 0; y < pixels.shape[1]; y += options.y){
+    for(var x = 0 ; x < pixels.shape[0]; x++){
+      pixelSetter(x, y, [color[0], color[1], color[2]], pixels); // to remove 4th channel - pixels.set(x, y, 3, color[3]);
+
+    }
+  }
+
+  return pixels;
+};
