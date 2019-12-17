@@ -1,35 +1,55 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var defaultHtmlSequencerUi = require('./lib/defaultHtmlSequencerUi.js'),
-    setupCache = require('./lib/cache.js'),
-    intermediateHtmlStepUi = require('./lib/intermediateHtmlStepUi.js'),
-    DefaultHtmlStepUi = require('./lib/defaultHtmlStepUi.js'),
-    urlHash = require('./lib/urlHash.js'),
-    insertPreview = require('./lib/insertPreview.js');
+  setupCache = require('./lib/cache.js'),
+  intermediateHtmlStepUi = require('./lib/intermediateHtmlStepUi.js'),
+  DefaultHtmlStepUi = require('./lib/defaultHtmlStepUi.js'),
+  urlHash = require('./lib/urlHash.js'),
+  insertPreview = require('./lib/insertPreview.js');
 
-window.onload = function() {
+window.onload = function () {
   sequencer = ImageSequencer();
 
-  function refreshOptions() {
+  options = {
+    sortField: 'text',
+    openOnFocus: false,
+    onInitialize: function () {
+      this.$control.on('click', () => {
+        this.ignoreFocusOpen = true;
+        setTimeout(() => {
+          // Trigger onFocus and open dropdown.
+          this.ignoreFocusOpen = false;
+        }, 50);
+      });
+    },
+    // Open dropdown after timeout of onClick.
+    onFocus: function () {
+      if (!this.ignoreFocusOpen) {
+        this.open();
+      }
+    }
+  };
+
+  function refreshOptions(options) {
+    // Default options if parameter is empty.
+    if (options == undefined) options = { sortField: 'text' };
     // Load information of all modules (Name, Inputs, Outputs)
     var modulesInfo = sequencer.modulesInfo();
 
-    var addStepSelect = $("#addStep select");
-    addStepSelect.html("");
+    var addStepSelect = $('#addStep select');
+    addStepSelect.html('');
 
     // Add modules to the addStep dropdown
     for (var m in modulesInfo) {
       if (modulesInfo[m] && modulesInfo[m].name)
         addStepSelect.append(
-          '<option value="' + m + '">' + modulesInfo[m].name + "</option>"
+          '<option value="' + m + '">' + modulesInfo[m].name + '</option>'
         );
     }
     // Null option
     addStepSelect.append('<option value="" disabled selected>Select a Module</option>');
-    addStepSelect.selectize({
-      sortField: 'text'
-  });
+    addStepSelect.selectize(options);
   }
-  refreshOptions();
+  refreshOptions(options);
 
   $(window).on('scroll', scrollFunction);
 
@@ -37,7 +57,7 @@ window.onload = function() {
     var shouldDisplay = $('body').scrollTop() > 20 || $(':root').scrollTop() > 20;
 
     $('#move-up').css({
-       display: shouldDisplay ? 'block' : 'none'
+      display: shouldDisplay ? 'block' : 'none'
     });
   }
 
@@ -47,7 +67,7 @@ window.onload = function() {
     $(':root').animate({scrollTop: 0});
   }
 
-  $('#move-up').on("click",topFunction);
+  $('#move-up').on('click', topFunction);
 
 
   // UI for each step:
@@ -60,105 +80,105 @@ window.onload = function() {
   if (urlHash.getUrlHashParameter('src')) {
     sequencer.loadImage(urlHash.getUrlHashParameter('src'), ui.onLoad);
   } else {
-    sequencer.loadImage("images/tulips.png", ui.onLoad);
+    sequencer.loadImage('images/tulips.png', ui.onLoad);
   }
 
-  var resetSequence = function(){
-    var r=confirm("Do you want to reset the sequence?");
+  var resetSequence = function () {
+    var r = confirm('Do you want to reset the sequence?');
     if (r)
-      window.location = "/";
-  }
+      window.location = '/';
+  };
 
-  $("#addStep select").on("change", ui.selectNewStepUi);
-  $("#addStep #add-step-btn").on("click", ui.addStepUi);
-  $("#resetButton").on("click",resetSequence);
+  $('#addStep select').on('change', ui.selectNewStepUi);
+  $('#addStep #add-step-btn').on('click', ui.addStepUi);
+  $('#resetButton').on('click', resetSequence);
 
   //Module button radio selection
-  $('.radio-group .radio').on("click", function() {
+  $('.radio-group .radio').on('click', function () {
     $(this).parent().find('.radio').removeClass('selected');
     $(this).addClass('selected');
     newStep = $(this).attr('data-value');
     //$("#addStep option[value=" + newStep + "]").attr('selected', 'selected');
-    $("#addStep select").val(newStep);
+    $('#addStep select').val(newStep);
     ui.selectNewStepUi(newStep);
     ui.addStepUi(newStep);
     $(this).removeClass('selected');
   });
 
-  $('#download-btn').click(function() {
-    $('.step-thumbnail:last()').trigger("click");
-    return false;
-  });
-
-  function displayMessageOnSaveSequence(){
-      $(".savesequencemsg").fadeIn();
-      setTimeout(function() {
-          $(".savesequencemsg").fadeOut();
-      }, 1000);
-    }
+  function displayMessageOnSaveSequence() {
+    $('.savesequencemsg').fadeIn();
+    setTimeout(function () {
+      $('.savesequencemsg').fadeOut();
+    }, 3000);
+  }
 
   $('body').on('click', 'button.remove', ui.removeStepUi);
-  $('#save-seq').click(() => {
-    var result = window.prompt("Please give a name to your sequence... (Saved sequence will only be available in this browser).");
-    if(result){
-      result = result + " (local)";
-      sequencer.saveSequence(result, sequencer.toString());
+  function saveSequence() { // 1. save seq
+    var result = window.prompt('Please give a name to your sequence... (Saved sequence will only be available in this browser).');
+    if (result) {
+      result = result + ' (local)';
+      sequencer.saveSequence(result, sequencer.toString()); // 1.a study saveSequence
       sequencer.loadModules();
       displayMessageOnSaveSequence();
       refreshOptions();
     }
+  }
+  $('#saveButton').on('click', function () {
+    // different handlers triggered for different dropdown options
+
+    let dropDownValue = $('#selectSaveOption option:selected').val();
+
+    if (dropDownValue == 'save-image') {
+      $('.download-btn:last()').trigger('click');
+    }
+    else if (dropDownValue == 'save-gif') {
+      handleSavePNG();
+    }
+    else if (dropDownValue == 'save-seq') {
+      saveSequence();
+    } else if(dropDownValue == 'save-pdf') {
+      savePDF(getLastImage());
+    }
+    else if (dropDownValue == 'save-to-publiclab.org' ){
+      SaveToPubliclab();
+    }
   });
 
-  var isWorkingOnGifGeneration = false;
+  let isWorkingOnGifGeneration = false;
 
-  $('.js-view-as-gif').on('click', function(event) {
-    // Prevent user from triggering generation multiple times
+  $('.js-view-as-gif').on('click', function (event) {
+    /* Prevent user from triggering generation multiple times*/
     if (isWorkingOnGifGeneration) return;
 
     isWorkingOnGifGeneration = true;
 
     var button = event.target;
     button.disabled = true;
-    button.innerHTML='<i class="fa fa-circle-o-notch fa-spin"></i>'
+    button.innerHTML = '<i class="fa fa-circle-o-notch fa-spin"></i>';
 
     try {
-      // Select all images from previous steps
-      var imgs = document.getElementsByClassName("step-thumbnail");
+      /* Get gif resources of previous steps  */
+      let options = getGifResources();
 
-      var imgSrcs = [];
-
-      for (var i = 0; i < imgs.length; i++) {
-        imgSrcs.push(imgs[i].src);
-      }
-
-      var options = {
-        'gifWidth': imgs[0].width,
-        'gifHeight': imgs[0].height,
-        'images': imgSrcs,
-        'frameDuration': 7,
-      }
-
-      gifshot.createGIF(options, function(obj) {
+      gifshot.createGIF(options, function (obj) { // gif generation
         if (!obj.error) {
           // Final gif encoded with base64 format
           var image = obj.image;
           var animatedImage = document.createElement('img');
 
-          animatedImage.id = "gif_element";
+          animatedImage.id = 'gif_element';
           animatedImage.src = image;
 
+          let modal = $('#js-download-gif-modal');
 
-          var modal = $('#js-download-gif-modal');
-
-          $("#js-download-as-gif-button").one("click", function() {
+          $('#js-download-as-gif-button').one('click', function () {
             // Trigger download
-            download(image, "index.gif", "image/gif");
-
+            downloadGif(image);
             // Close modal
             modal.modal('hide');
-          })
+          });
 
-          var gifContainer = document.getElementById("js-download-modal-gif-container");
+          var gifContainer = document.getElementById('js-download-modal-gif-container');
 
           // Clear previous results
           gifContainer.innerHTML = '';
@@ -181,62 +201,143 @@ window.onload = function() {
       button.disabled = false;
       button.innerHTML = 'View GIF';
       isWorkingOnGifGeneration = false;
-
     }
   });
 
+  function getGifResources() {
+    /* Returns an object with specific gif options */
+    let imgs = document.getElementsByClassName('step-thumbnail');
+    var imgSrcs = [];
+
+    // Pushes image sources of all the modules in dom
+    for (var i = 0; i < imgs.length; i++) {
+      imgSrcs.push(imgs[i].src);
+    }
+
+    var options = { // gif frame options
+      'gifWidth': imgs[0].width,
+      'gifHeight': imgs[0].height,
+      'images': imgSrcs,
+      'frameDuration': 7,
+    };
+
+    return options;
+  }
+
+  function handleSavePNG() {
+    let options = getGifResources();
+    gifshot.createGIF(options, function(obj){
+
+      downloadGif(obj.image);
+
+    });
+  }
+
+  /**
+  * Get the data URL for the last image in the sequence.
+  * @return {string} The data URL for the last image in the sequence.
+  */
+  function getLastImage() {
+    // Get the image from the last step.
+    let imgs = document.getElementsByClassName('step-thumbnail');
+    let lastStepImage = imgs[imgs.length - 1];
+    return lastStepImage.getAttribute('src');
+  }
+
+  /**
+  * Download the given image URL as a PDF file.
+  * @param {string} imageDataURL - The data URL for the image.
+  */
+  function savePDF(imageDataURL) {
+    sequencer.getImageDimensions(imageDataURL, function(dimensions) {
+      // Get the dimensions of the image.
+      let pageWidth = dimensions.width;
+      let pageHeight = dimensions.height;
+
+      // Create a new pdf with the same dimensions as the image.
+      const pdf = new jsPDF({
+        orientation: pageHeight > pageWidth ? 'portrait' : 'landscape',
+        unit: 'px',
+        format: [pageHeight, pageWidth]
+      });
+
+      // Add the image to the pdf with dimensions equal to the internal dimensions of the page.
+      pdf.addImage(imageDataURL, 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+
+      // Save the pdf with the filename specified here:
+      pdf.save('index.pdf');
+    });
+  }
+
+
+
+  function downloadGif(image) {
+    download(image, 'index.gif', 'image/gif');// downloadjs library function
+  }
+
+  function SaveToPubliclab() {
+    function postToPL(imgSrc) {
+      var uniq = Date.now();
+      $('body').append('<form method="post" id="postToPL' + uniq + '" action="https://publiclab.org/post" target="postToPLWindow"><input type="hidden" name="datauri_main_image" /></form>');
+      f = $('#postToPL' + uniq)[0];
+      f.datauri_main_image.value = imgSrc;
+      window.open('', 'postToPLWindow');
+      f.submit();
+    }
+    postToPL($('img')[sequencer.steps.length - 1].src);
+  }
+
   // image selection and drag/drop handling from examples/lib/imageSelection.js
   sequencer.setInputStep({
-    dropZoneSelector: "#dropzone",
-    fileInputSelector: "#fileInput",
-    takePhotoSelector: "#take-photo",
+    dropZoneSelector: '#dropzone',
+    fileInputSelector: '#fileInput',
+    takePhotoSelector: '#take-photo',
     onLoad: function onFileReaderLoad(progress) {
       var reader = progress.target;
       var step = sequencer.steps[0];
-      var util= intermediateHtmlStepUi(sequencer);
+      var util = intermediateHtmlStepUi(sequencer);
       step.output.src = reader.result;
       sequencer.run({ index: 0 });
-      if(typeof step.options !=="undefined")
+      if (typeof step.options !== 'undefined')
         step.options.step.imgElement.src = reader.result;
       else
         step.imgElement.src = reader.result;
-      insertPreview.updatePreviews(reader.result,'#addStep');
-      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'.insertDiv');
+      
+      insertPreview.updatePreviews(reader.result, document.querySelector('#addStep'));
     },
     onTakePhoto: function (url) {
       var step = sequencer.steps[0];
       step.output.src = url;
       sequencer.run({ index: 0 });
-      if(typeof step.options !=="undefined")
+      if (typeof step.options !== 'undefined')
         step.options.step.imgElement.src = url;
       else
         step.imgElement.src = url;
-      insertPreview.updatePreviews(url,'#addStep');
-      insertPreview.updatePreviews(sequencer.steps[0].imgElement.src,'.insertDiv');
+      insertPreview.updatePreviews(url, document.querySelector('#addStep'));
     }
   });
 
   setupCache();
 
   if (urlHash.getUrlHashParameter('src')) {
-    insertPreview.updatePreviews(urlHash.getUrlHashParameter('src'),'#addStep');
+    insertPreview.updatePreviews(urlHash.getUrlHashParameter('src'), document.querySelector('#addStep'));
   } else {
-    insertPreview.updatePreviews("images/tulips.png",'#addStep');
+    insertPreview.updatePreviews('images/tulips.png', document.querySelector('#addStep'));
   }
 };
 
-},{"./lib/cache.js":2,"./lib/defaultHtmlSequencerUi.js":3,"./lib/defaultHtmlStepUi.js":4,"./lib/insertPreview.js":5,"./lib/intermediateHtmlStepUi.js":6,"./lib/urlHash.js":8}],2:[function(require,module,exports){
+},{"./lib/cache.js":2,"./lib/defaultHtmlSequencerUi.js":3,"./lib/defaultHtmlStepUi.js":4,"./lib/insertPreview.js":5,"./lib/intermediateHtmlStepUi.js":6,"./lib/urlHash.js":9}],2:[function(require,module,exports){
 var setupCache = function() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js', { scope: '/examples/' })
       .then(function(registration) {
         const installingWorker = registration.installing;
         installingWorker.onstatechange = () => {
-          console.log(installingWorker)
+          console.log(installingWorker);
           if (installingWorker.state === 'installed') {
             location.reload();
           }
-        }
+        };
         console.log('Registration successful, scope is:', registration.scope);
       })
       .catch(function(error) {
@@ -247,12 +348,12 @@ var setupCache = function() {
   if ('serviceWorker' in navigator) {
     caches.keys().then(function(cacheNames) {
       cacheNames.forEach(function(cacheName) {
-        $("#clear-cache").append(" " + cacheName);
+        $('#clear-cache').append(' ' + cacheName);
       });
     });
   }
 
-  $("#clear-cache").click(function() {
+  $('#clear-cache').click(function() {
     if ('serviceWorker' in navigator) {
       caches.keys().then(function(cacheNames) {
         cacheNames.forEach(function(cacheName) {
@@ -262,7 +363,7 @@ var setupCache = function() {
     }
     location.reload();
   });
-}
+};
 
 module.exports = setupCache;
 
@@ -271,51 +372,52 @@ var urlHash = require('./urlHash.js');
 function DefaultHtmlSequencerUi(_sequencer, options) {
 
   options = options || {};
-  var addStepSel = options.addStepSel = options.addStepSel || "#addStep";
-  var removeStepSel = options.removeStepSel = options.removeStepSel || "button.remove";
-  var selectStepSel = options.selectStepSel = options.selectStepSel || "#selectStep";
+  var addStepSel = options.addStepSel = options.addStepSel || '#addStep';
+  var removeStepSel = options.removeStepSel = options.removeStepSel || 'button.remove';
+  var selectStepSel = options.selectStepSel = options.selectStepSel || '#selectStep';
 
   function onLoad() {
     importStepsFromUrlHash();
-    if ($('#selectStep').val()==='none')
-        $(addStepSel + " #add-step-btn").prop("disabled", true);
-      handleSaveSequence();
+    if ($('#selectStep').val() === 'none')
+      $(addStepSel + ' #add-step-btn').prop('disabled', true);
+    handleSaveSequence();
   }
 
   // look up needed steps from Url Hash:
   function importStepsFromUrlHash() {
-    var hash = urlHash.getUrlHashParameter("steps");
+    var hash = urlHash.getUrlHashParameter('steps');
 
     if (hash) {
       _sequencer.importString(hash);
       _sequencer.run({ index: 0 });
     }
-    urlHash.setUrlHashParameter("steps", sequencer.toString());
+    urlHash.setUrlHashParameter('steps', sequencer.toString());
   }
 
   function selectNewStepUi() {
-    var m = $(addStepSel + " select").val();
+    var m = $(addStepSel + ' select').val();
     if(!m) m = arguments[0];
-    $(addStepSel + " .info").html(_sequencer.modulesInfo(m).description);
-    $(addStepSel + " #add-step-btn").prop("disabled", false);
+    $(addStepSel + ' .info').html(_sequencer.modulesInfo(m).description);
+    $(addStepSel + ' #add-step-btn').prop('disabled', false);
   }
 
   function removeStepUi() {
     var index = $(removeStepSel).index(this) + 1;
     sequencer.removeSteps(index).run({ index: index - 1 });
     // remove from URL hash too
-    urlHash.setUrlHashParameter("steps", sequencer.toString());
+    urlHash.setUrlHashParameter('steps', sequencer.toString());
     //disable save-sequence button if all steps are removed
     handleSaveSequence();
   }
 
   function addStepUi() {
-    if ($(addStepSel + " select").val() == "none") return;
+    if ($(addStepSel + ' select').val() == 'none') return;
+    var newStepName;
+    if(typeof arguments[0] !== 'string')
+      newStepName = $(addStepSel + ' select option').html().toLowerCase().split(' ').join('-');
+    else newStepName = arguments[0];
 
-    var newStepName = $(addStepSel + " select").val();
-  
-    if(!newStepName) newStepName = arguments[0]
-
+    
     /*
     * after adding the step we run the sequencer from defined step
     * and since loadImage is not a part of the drawarray the step lies at current
@@ -324,28 +426,28 @@ function DefaultHtmlSequencerUi(_sequencer, options) {
     var sequenceLength = 1;
     if (sequencer.sequences[newStepName]) {
       sequenceLength = sequencer.sequences[newStepName].length;
-    } else if (sequencer.modules[newStepName][1]["length"]) {
-      sequenceLength = sequencer.modules[newStepName][1]["length"];
+    } else if (sequencer.modules[newStepName][1]['length']) {
+      sequenceLength = sequencer.modules[newStepName][1]['length'];
     }
     _sequencer
       .addSteps(newStepName, options)
       .run({ index: _sequencer.steps.length - sequenceLength - 1 });
-      $(addStepSel + " .info").html("Select a new module to add to your sequence.");
-      $(addStepSel + " select").val("none");
+    $(addStepSel + ' .info').html('Select a new module to add to your sequence.');
+    $(addStepSel + ' select').val('none');
 
     //enable save-sequence button if disabled initially
     handleSaveSequence();
 
     // add to URL hash too
-    urlHash.setUrlHashParameter("steps", _sequencer.toString())
+    urlHash.setUrlHashParameter('steps', _sequencer.toString());
   }
 
   function handleSaveSequence(){
-    var stepCount=sequencer.steps.length;
-    if(stepCount<2)
-    $(" #save-seq").prop("disabled", true);
+    var stepCount = sequencer.steps.length;
+    if(stepCount < 2)
+      $(' #save-seq').prop('disabled', true);
     else
-    $(" #save-seq").prop("disabled", false);
+      $(' #save-seq').prop('disabled', false);
   }
 
   return {
@@ -354,13 +456,13 @@ function DefaultHtmlSequencerUi(_sequencer, options) {
     selectNewStepUi: selectNewStepUi,
     removeStepUi: removeStepUi,
     addStepUi: addStepUi
-  }
+  };
 }
 
 module.exports = DefaultHtmlSequencerUi;
 
 
-},{"./urlHash.js":8}],4:[function(require,module,exports){
+},{"./urlHash.js":9}],4:[function(require,module,exports){
 // Set the UI in sequencer. This Will generate HTML based on
 // Image Sequencer events :
 // onSetup : Called every time a step is added
@@ -371,16 +473,16 @@ module.exports = DefaultHtmlSequencerUi;
 // output values, step information.
 // See documetation for more details.
 
-var intermediateHtmlStepUi = require('./intermediateHtmlStepUi.js');
-var urlHash = require('./urlHash.js');
-var _ = require('lodash');
-var mapHtmlTypes = require('./mapHtmltypes');
+const intermediateHtmlStepUi = require('./intermediateHtmlStepUi.js'),
+  urlHash = require('./urlHash.js'),
+  _ = require('lodash'),
+  mapHtmlTypes = require('./mapHtmltypes'),
+  scopeQuery = require('./scopeQuery');
 
 function DefaultHtmlStepUi(_sequencer, options) {
-  
   options = options || {};
-  var stepsEl = options.stepsEl || document.querySelector("#steps");
-  var selectStepSel = options.selectStepSel = options.selectStepSel || "#selectStep";
+  var stepsEl = options.stepsEl || document.querySelector('#steps');
+  var selectStepSel = options.selectStepSel = options.selectStepSel || '#selectStep';
 
   function onSetup(step, stepOptions) {
     if (step.options && step.options.description)
@@ -391,9 +493,9 @@ function DefaultHtmlStepUi(_sequencer, options) {
       <div class="container-fluid step-container">\
           <div class="panel panel-default">\
             <div class="panel-heading">\
-              <div class="trash-container pull-right"></div>\
-              <h3 class="panel-title">' +  
-                '<span class="toggle">' +step.name + ' <span class="caret toggleIcon rotated"></span>\
+              <div class="trash-container pull-right"><button type="button" class="btn btn-link ' + step.name + ' dimension-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title=""><i class="fa fa-info-circle"></i></button></div>\
+              <h3 class="panel-title">' +
+                '<span class="toggle mouse">' + step.name + ' <span class="caret toggleIcon rotated"></span>\
                  <span class="load-spin pull-right" style="display:none;padding:1px 8px;"><i class="fa fa-circle-o-notch fa-spin"></i></span>\
               </h3>\
             </div>\
@@ -402,7 +504,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
               <div class="row step">\
                 <div class="col-md-4 details container-fluid">\
                   <div class="cal collapse in"><p>' +
-                    '<i>' + (step.description || "") + '</i>' +
+                    '<i>' + (step.description || '') + '</i>' +
                  '</p></div>\
                 </div>\
                 <div class="col-md-8 cal collapse in step-column">\
@@ -419,7 +521,7 @@ function DefaultHtmlStepUi(_sequencer, options) {
       </div>';
 
     var tools =
-    '<div class="trash">\
+    '<div class="trash" style="display: inline-block">\
       <button confirm="Are you sure?" class="remove btn btn-default btn-xs">\
         <i class="fa fa-trash"></i>\
       </button>\
@@ -428,10 +530,13 @@ function DefaultHtmlStepUi(_sequencer, options) {
     var util = intermediateHtmlStepUi(_sequencer, step);
 
     var parser = new DOMParser();
-    step.ui = parser.parseFromString(step.ui, "text/html");
-    step.ui = step.ui.querySelector("div.container-fluid");
-    step.linkElements = step.ui.querySelectorAll("a");
-    step.imgElement = step.ui.querySelector("a img.img-thumbnail");
+    step.ui = parser.parseFromString(step.ui, 'text/html');
+    step.ui = step.ui.querySelector('div.container-fluid');
+    step.$step = scopeQuery.scopeSelector(step.ui);
+    step.$stepAll = scopeQuery.scopeSelectorAll(step.ui);
+    let {$step, $stepAll} = step;
+    step.linkElements = step.ui.querySelectorAll('a');
+    step.imgElement = $step('a img.img-thumbnail')[0];
 
     if (_sequencer.modulesInfo().hasOwnProperty(step.name)) {
       var inputs = _sequencer.modulesInfo(step.name).inputs;
@@ -440,113 +545,150 @@ function DefaultHtmlStepUi(_sequencer, options) {
 
       for (var paramName in merged) {
         var isInput = inputs.hasOwnProperty(paramName);
-        var html = "";
+        var html = '';
         var inputDesc = isInput ? mapHtmlTypes(inputs[paramName]) : {};
         if (!isInput) {
           html += '<span class="output"></span>';
-        } else if (inputDesc.type.toLowerCase() == "select") {
+        }
+        else if (inputDesc.type.toLowerCase() == 'select') {
+
           html += '<select class="form-control target" name="' + paramName + '">';
           for (var option in inputDesc.values) {
-            html += "<option>" + inputDesc.values[option] + "</option>";
+            html += '<option>' + inputDesc.values[option] + '</option>';
           }
-          html += "</select>";
-        } else {
+          html += '</select>';
+        }
+        else {
           let paramVal = step.options[paramName] || inputDesc.default;
-          html =
-            '<input class="form-control target" type="' +
-            inputDesc.type +
-            '" name="' +
-            paramName +
-            '" value="' +
-            paramVal +
-            '" placeholder ="' +
-            (inputDesc.placeholder || "");
 
-          if (inputDesc.type.toLowerCase() == "range") {
+          if (inputDesc.id == 'color-picker') { // separate input field for color-picker
             html +=
-              '"min="' +
-              inputDesc.min +
-              '"max="' +
-              inputDesc.max +
-              '"step="' +
-              (inputDesc.step ? inputDesc.step : 1)+ '">' + '<span>' + paramVal + '</span>';
-
+              '<div id="color-picker" class="input-group colorpicker-component">' +
+              '<input class="form-control target" type="' +
+              inputDesc.type +
+              '" name="' +
+              paramName +
+              '" value="' +
+              paramVal + '">' + '<span class="input-group-addon"><i></i></span>' +
+              '</div>';
           }
-          else html += '">';
+          else { // use this if the the field isn't color-picker
+            html =
+              '<input class="form-control target" type="' +
+              inputDesc.type +
+              '" name="' +
+              paramName +
+              '" value="' +
+              paramVal +
+              '" placeholder ="' +
+              (inputDesc.placeholder || '');
+              
+            if (inputDesc.type.toLowerCase() == 'range') {
+              html +=
+                '"min="' +
+                inputDesc.min +
+                '"max="' +
+                inputDesc.max +
+                '"step="' +
+                (inputDesc.step ? inputDesc.step : 1) + '">' + '<span>' + paramVal + '</span>';
+
+            }
+            else html += '">';
+          }
         }
 
-        var div = document.createElement("div");
-        div.className = "row";
-        div.setAttribute("name", paramName);
+        var div = document.createElement('div');
+        div.className = 'row';
+        div.setAttribute('name', paramName);
         var description = inputs[paramName].desc || paramName;
         div.innerHTML =
-          "<div class='det cal collapse in'>\
-                           <label for='" +
+          '<div class=\'det cal collapse in\'>\
+                           <label for=\'' +
           paramName +
-          "'>" +
+          '\'>' +
           description +
-          "</label>\
-                           " +
+          '</label>\
+                           ' +
           html +
-          "\
-                         </div>";
-        step.ui.querySelector("div.details").appendChild(div);
+          '\
+                         </div>';
+        $step('div.details').append(div);
       }
-      $(step.ui.querySelector("div.panel-footer")).append(
+      $step('div.panel-footer').append(
         '<div class="cal collapse in"><button type="submit" class="btn btn-sm btn-default btn-save" disabled = "true" >Apply</button> <small style="padding-top:2px;">Press apply to see changes</small></div>'
       );
-      $(step.ui.querySelector("div.panel-footer")).prepend(
+      $step('div.panel-footer').prepend(
         '<button class="pull-right btn btn-default btn-sm insert-step" >\
-          <span class="insert-text"><i class="fa fa-plus"></i> Insert Step</span><span class="no-insert-text" style="display:none">Close</span>\
+        <span class="insert-text"><i class="fa fa-plus"></i> Insert Step</span><span class="no-insert-text" style="display:none">Close</span></button>\
+        <button class="pull-right btn btn-default btn-sm download-btn" style="margin-right:2px" >\
+        <i class="fa fa-download"></i>\
         </button>'
-      );  
+      );
     }
 
-    if (step.name != "load-image") {
-      step.ui
-        .querySelector("div.trash-container")
+    if (step.name != 'load-image') {
+      $step('div.trash-container')
         .prepend(
-          parser.parseFromString(tools, "text/html").querySelector("div")
+          parser.parseFromString(tools, 'text/html').querySelector('div')
         );
-      $(step.ui.querySelectorAll(".remove")).on('click', function() {notify('Step Removed','remove-notification')});  
-      $(step.ui.querySelectorAll(".insert-step")).on('click', function() { util.insertStep(step.ID) });    
+
+      $stepAll('.remove').on('click', function() {notify('Step Removed', 'remove-notification');});
+      $step('.insert-step').on('click', function() { util.insertStep(step.ID); });
       // Insert the step's UI in the right place
       if (stepOptions.index == _sequencer.steps.length) {
         stepsEl.appendChild(step.ui);
-        $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
-        if($("#steps .step-container:nth-last-child(2)"))
-        $("#steps .step-container:nth-last-child(2) .insert-step").prop('disabled',false);
-      } else {
+        $('#steps .step-container:nth-last-child(1) .insert-step').prop('disabled', true);
+        if($('#steps .step-container:nth-last-child(2)'))
+          $('#steps .step-container:nth-last-child(2) .insert-step').prop('disabled', false);
+      }
+      else {
         stepsEl.insertBefore(step.ui, $(stepsEl).children()[stepOptions.index]);
       }
+
+      // Enable the load-image insert-step button when there are steps after load-image
+      // The logical operator is `> 0` because the number of steps is found before adding the step, actual logic is `steps.length + 1 > 1` which is later simplified.
+      if (_sequencer.steps.length > 0) $('#load-image .insert-step').prop('disabled', false);
+      else $('#load-image .insert-step').prop('disabled', true);
     }
     else {
-      $("#load-image").append(step.ui);
+      $('#load-image').append(step.ui);
+
+
+      $step('div.panel-footer').prepend( `
+          <button class="right btn btn-default btn-sm insert-step" disabled="true">
+            <span class="insert-text"><i class="fa fa-plus"></i> Insert Step</span>
+            <span class="no-insert-text" style="display:none">Close</span>
+          </button>`
+      );
+
+      $step('.insert-step').on('click', function() { util.insertStep(step.ID); });
     }
-    $(step.ui.querySelector(".toggle")).on("click", () => {
-      $(step.ui.querySelector('.toggleIcon')).toggleClass('rotated');
-       $(step.ui.querySelectorAll(".cal")).collapse('toggle');
+    $step('.toggle').on('click', () => {
+      $step('.toggleIcon').toggleClass('rotated');
+      $stepAll('.cal').collapse('toggle');
     });
     
-    $(step.imgElement).on("mousemove", _.debounce(() => imageHover(step), 150));
+    $(step.imgElement).on('mousemove', _.debounce(() => imageHover(step), 150));
+    $(step.imgElement).on('click', (e) => {e.preventDefault(); });
+    $stepAll('#color-picker').colorpicker();
 
-    function saveOptions(e) {
+    function saveOptions(e) { // 1. SAVE OPTIONS
       e.preventDefault();
       if (optionsChanged){
-        $(step.ui.querySelector("div.details"))
-          .find("input,select")
+        $step('div.details')
+          .find('input,select')
           .each(function(i, input) {
             $(input)
               .data('initValue', $(input).val())
               .data('hasChangedBefore', false);
-            step.options[$(input).attr("name")] = $(input).val();
+            step.options[$(input).attr('name')] = $(input).val();
           });
         _sequencer.run({ index: step.index - 1 });
 
         // modify the url hash
-        urlHash.setUrlHashParameter("steps", _sequencer.toString())
+        urlHash.setUrlHashParameter('steps', _sequencer.toString());
         // disable the save button
-        $(step.ui.querySelector('.btn-save')).prop('disabled', true);
+        $step('.btn-save').prop('disabled', true);
         optionsChanged = false;
         changedInputs = 0;
       }
@@ -557,19 +699,19 @@ function DefaultHtmlStepUi(_sequencer, options) {
       changedInputs += hasChangedBefore ? inputChanged ? 0 : -1 : inputChanged ? 1 : 0;
       optionsChanged = changedInputs > 0;
 
-      $(step.ui.querySelector('.btn-save')).prop('disabled', !optionsChanged);
+      $step('.btn-save').prop('disabled', !optionsChanged);
       return inputChanged;
     }
 
-    var 
+    var
       changedInputs = 0,
       optionsChanged = false;
-    $(step.ui.querySelector('.input-form')).on('submit', saveOptions);
-    $(step.ui.querySelectorAll('.target')).each(function(i, input) {
+    $step('.input-form').on('submit', saveOptions);
+    $stepAll('.target').each(function(i, input) {
       $(input)
         .data('initValue', $(input).val())
         .data('hasChangedBefore', false)
-        .on('input change' , function() {
+        .on('input change', function() {
           $(this)
             .focus()
             .data('hasChangedBefore',
@@ -577,32 +719,33 @@ function DefaultHtmlStepUi(_sequencer, options) {
                 $(this).val(),
                 $(this).data('initValue'),
                 $(this).data('hasChangedBefore')
-            )
-          )
-        })
-    })
+              )
+            );
+        });
+    });
 
 
 
     $('input[type="range"]').on('input', function() {
-        $(this).next().html($(this).val());
-    })
+      $(this).next().html($(this).val());
+    });
   }
 
 
-  function onDraw(step) {
-    $(step.ui.querySelector(".load")).show();
-    $(step.ui.querySelector("img")).hide();
-    $(step.ui.querySelectorAll(".load-spin")).show();
+  function onDraw({$step, $stepAll}) {
+    $step('.load').show();
+    $step('img').hide();
+    $stepAll('.load-spin').show();
   }
 
   function onComplete(step) {
-    $(step.ui.querySelector("img")).show();
-    $(step.ui.querySelectorAll(".load-spin")).hide();
-    $(step.ui.querySelector(".load")).hide();
+    let {$step, $stepAll} = step;
+    $step('img').show();
+    $stepAll('.load-spin').hide();
+    $step('.load').hide();
 
-    step.imgElement.src = (step.name == "load-image") ? step.output.src : step.output;
-    var imgthumbnail = step.ui.querySelector(".img-thumbnail");
+    step.imgElement.src = (step.name == 'load-image') ? step.output.src : step.output;
+    var imgthumbnail = $step('.img-thumbnail').getDomElem();
     for (let index = 0; index < step.linkElements.length; index++) {
       if (step.linkElements[index].contains(imgthumbnail))
         step.linkElements[index].href = step.imgElement.src;
@@ -610,14 +753,24 @@ function DefaultHtmlStepUi(_sequencer, options) {
 
     // TODO: use a generalized version of this
     function fileExtension(output) {
-      return output.split("/")[1].split(";")[0];
+      return output.split('/')[1].split(';')[0];
     }
 
-    for (let index = 0; index < step.linkElements.length; index++) {
+    $stepAll('.download-btn').on('click', () => {
 
-      step.linkElements[index].download = step.name + "." + fileExtension(step.imgElement.src);
-      step.linkElements[index].target = "_blank";
-    }
+      for (let index = 0; index < step.linkElements.length; index++){
+        
+        var element = document.createElement('a');
+        element.setAttribute('href', step.linkElements[index].href);
+        element.setAttribute('download', step.name + '.' + fileExtension(step.imgElement.src));
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        
+        element.click();
+
+        document.body.removeChild(element);
+      }
+    });
 
     // fill inputs with stored step options
     if (_sequencer.modulesInfo().hasOwnProperty(step.name)) {
@@ -625,46 +778,59 @@ function DefaultHtmlStepUi(_sequencer, options) {
       var outputs = _sequencer.modulesInfo(step.name).outputs;
       for (var i in inputs) {
         if (step.options[i] !== undefined) {
-          if (inputs[i].type.toLowerCase() === "input")
-            $(step.ui.querySelector('div[name="' + i + '"] input'))
+          if (inputs[i].type.toLowerCase() === 'input')
+            $step('div[name="' + i + '"] input')
               .val(step.options[i])
               .data('initValue', step.options[i]);
-          if (inputs[i].type.toLowerCase() === "select")
-            $(step.ui.querySelector('div[name="' + i + '"] select'))
+          if (inputs[i].type.toLowerCase() === 'select')
+            $step('div[name="' + i + '"] select')
               .val(step.options[i])
               .data('initValue', step.options[i]);
         }
       }
       for (var i in outputs) {
         if (step[i] !== undefined)
-          $(step.ui.querySelector('div[name="' + i + '"] input'))
+          $step('div[name="' + i + '"] input')
             .val(step[i]);
       }
     }
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+      _sequencer.getImageDimensions(step.imgElement.src, function (dim) {
+        step.ui.querySelector('.' + step.name).attributes['data-original-title'].value = `<div style="text-align: center"><p>Image Width: ${dim.width}<br>Image Height: ${dim.height}</br></div>`;
+      });
+    });
   }
 
   function imageHover(step){
 
     var img = $(step.imgElement);
 
-    img.mousemove(function(e) { 
+    img.mousemove(function(e) {
       var canvas = document.createElement('canvas');
       canvas.width = img.width();
       canvas.height = img.height();
       var context = canvas.getContext('2d');
-      context.drawImage(this,0,0);
+      context.drawImage(this, 0, 0);
 
       var offset = $(this).offset();
       var xPos = e.pageX - offset.left;
       var yPos = e.pageY - offset.top;
       var myData = context.getImageData(xPos, yPos, 1, 1);
-      img[0].title = "rgb: " +myData.data[0]+","+ myData.data[1]+","+myData.data[2];//+ rgbdata;
-    }); 
+      img[0].title = 'rgb: ' + myData.data[0] + ',' + myData.data[1] + ',' + myData.data[2];//+ rgbdata;
+    });
   }
 
   function onRemove(step) {
     step.ui.remove();
-    $("#steps .step-container:nth-last-child(1) .insert-step").prop('disabled',true);
+    $('#steps .step-container:nth-last-child(1) .insert-step').prop('disabled', true);
+
+    // Enable the load-image insert-step button when there are steps after load-image
+    // The logical operator is `> 2` because the number of steps is found before removing the step, actual logic is `steps.length - 1 > 1` which is later simplified.
+    if (_sequencer.steps.length - 1 > 1) $('#load-image .insert-step').prop('disabled', false);
+    else $('#load-image .insert-step').prop('disabled', true);
+
     $('div[class*=imgareaselect-]').remove();
   }
 
@@ -672,17 +838,17 @@ function DefaultHtmlStepUi(_sequencer, options) {
     return step.imgElement;
   }
 
-  function notify(msg,id){
-    if ($('#'+id).length == 0) {
+  function notify(msg, id){
+    if ($('#' + id).length == 0) {
       var notification = document.createElement('span');
       notification.innerHTML = ' <i class="fa fa-info-circle" aria-hidden="true"></i> ' + msg ;
       notification.id = id;
-      notification.classList.add("notification");
+      notification.classList.add('notification');
   
       $('body').append(notification);
     }
   
-    $('#'+id).fadeIn(500).delay(200).fadeOut(500);
+    $('#' + id).fadeIn(500).delay(200).fadeOut(500);
   }
     
   
@@ -691,81 +857,102 @@ function DefaultHtmlStepUi(_sequencer, options) {
     onSetup: onSetup,
     onComplete: onComplete,
     onRemove: onRemove,
-    onDraw: onDraw, 
+    onDraw: onDraw,
     notify: notify,
     imageHover: imageHover
-  }
+  };
 }
 
-if(typeof window === "undefined"){
-  module.exports={
+if(typeof window === 'undefined'){
+  module.exports = {
     DefaultHtmlStepUi: DefaultHtmlStepUi
-  }
+  };
 }
 
 module.exports = DefaultHtmlStepUi;
 
-
-},{"./intermediateHtmlStepUi.js":6,"./mapHtmltypes":7,"./urlHash.js":8,"lodash":9}],5:[function(require,module,exports){
-function generatePreview(previewStepName, customValues, path, selector) {
-
-    var previewSequencer = ImageSequencer();
-    function insertPreview(src) {
-      var img = document.createElement('img');
-      img.classList.add('img-thumbnail')
-      img.classList.add('no-border');
-      img.src = src;
-      $(img).css("max-width", "200%");
-      $(img).css("transform", "translateX(-20%)");
-      $(selector + ' .radio-group').find('div').each(function() {
-        if ($(this).find('div').attr('data-value') === previewStepName) {
-          $(this).find('div').append(img);
-        }
-      });
-    }
-
-    function loadPreview() {
-      if (previewStepName === "crop") {
-        previewSequencer.addSteps(previewStepName, customValues).run(insertPreview);
+},{"./intermediateHtmlStepUi.js":6,"./mapHtmltypes":7,"./scopeQuery":8,"./urlHash.js":9,"lodash":10}],5:[function(require,module,exports){
+function generatePreview(previewStepName, customValues, path, DomNode) {
+  var previewSequencer = ImageSequencer();
+  function insertPreview(src) {
+    var img = document.createElement('img');
+    img.classList.add('img-thumbnail');
+    img.classList.add('no-border');
+    img.src = src;
+    $(img).css('max-width', '200%');
+    $(img).css('transform', 'translateX(-20%)');
+    $(DomNode.querySelector('.radio-group')).find('.radio').each(function() {
+      if ($(this).attr('data-value') === previewStepName) {
+        $(this).append(img);
       }
-      else {
-        previewSequencer.addSteps(previewStepName, { [previewStepName]: customValues }).run(insertPreview);
-      }
-    }
-    previewSequencer.loadImage(path, loadPreview);
-  }
-
-  function updatePreviews(src, selector) {
-    $(selector+' img').remove();
-
-    var previewSequencerSteps = {
-      "resize": "125%",
-      "brightness": "175",
-      "saturation": "0.5",
-      "rotate": 90,
-      "contrast": 90,
-      "crop": {
-        "x": 0,
-        "y": 0,
-        "w": "(50%)",
-        "h": "(50%)",
-        "noUI": true
-      }
-    }
-
-    Object.keys(previewSequencerSteps).forEach(function (step, index) {
-      generatePreview(step, Object.values(previewSequencerSteps)[index], src, selector);
     });
   }
+
+  function loadPreview() {
+    if (previewStepName === 'crop') {
+      previewSequencer.addSteps(previewStepName, customValues).run(insertPreview);
+    }
+    else {
+      previewSequencer.addSteps(previewStepName, { [previewStepName]: customValues }).run(insertPreview);
+    }
+  }
+  if(previewStepName === 'resize')
+    insertPreview(path);
+  else
+    previewSequencer.loadImage(path, loadPreview);
+}
+
+function updatePreviews(src, DomNode) {
+  $(DomNode).find('img').remove();
+
+  var previewSequencerSteps = {
+    'resize': '125%',
+    'brightness': '175',
+    'saturation': '0.5',
+    'rotate': 90,
+    'contrast': 90,
+    'crop': {
+      'x': 0,
+      'y': 0,
+      'w': '(50%)',
+      'h': '(50%)',
+      'noUI': true
+    }
+  };
+
+  var img = new Image();
+
+  img.onload = function(){
+    var height = img.height;
+    var width = img.width;
+
+    let percentage = (80 / height) * 100; //take the min resize value that fits the preview area => (new-width/orig_ht) - '80 as the preview area has 80*80 dimension
+    percentage = Math.max((80 / width) * 100, percentage); // make sure that one dimension doesn't resize greater, leading distorting preview-area fitting
+    percentage = Math.ceil(percentage);
+
+    var sequencer = ImageSequencer();
+
+    sequencer.loadImage(src, function(){
+      this.addSteps('resize', {['resize']: percentage + '%'});
+      this.run((src)=>{
+        Object.keys(previewSequencerSteps).forEach(function (step, index) {
+          generatePreview(step, Object.values(previewSequencerSteps)[index], src, DomNode);
+        });
+      });
+    });
+  };
+  img.src = src;
+}
+
 
 module.exports = {
   generatePreview : generatePreview,
   updatePreviews : updatePreviews
-}
+};
 
 },{}],6:[function(require,module,exports){
 var urlHash = require('./urlHash.js'),
-    insertPreview = require('./insertPreview.js');
+  insertPreview = require('./insertPreview.js');
 
 function IntermediateHtmlStepUi(_sequencer, step, options) {
   function stepUI() {
@@ -830,126 +1017,107 @@ function IntermediateHtmlStepUi(_sequencer, step, options) {
         </div>';
   }
 
-
-  function selectNewStepUi() {
-    var insertSelect = $(step.ui.querySelector('.insert-step-select'))
-    var m = insertSelect.val();
-    $(step.ui.querySelector('.insertDiv .info')).html(_sequencer.modulesInfo(m).description);
-    $(step.ui.querySelector('.insertDiv .add-step-btn')).prop("disabled", false);
-  }
-    
-    
-  var toggleDiv = function(callback = function(){}){
-    $(step.ui.querySelector('.insertDiv')).collapse('toggle');
-    if ($(step.ui.querySelector('.insert-text')).css('display') != "none"){
-      $(step.ui.querySelector('.insert-text')).fadeToggle(200, function(){$(step.ui.querySelector('.no-insert-text')).fadeToggle(200, callback)})
+  var toggleDiv = function($step, callback = function(){}){
+    $step('.insertDiv').collapse('toggle');
+    if ($step('.insert-text').css('display') != 'none'){
+      $step('.insert-text').fadeToggle(200, function(){$step('.no-insert-text').fadeToggle(200, callback);});
     }
     else {
-      $(step.ui.querySelector('.no-insert-text')).fadeToggle(200, function(){$(step.ui.querySelector('.insert-text')).fadeToggle(200, callback)})
+      $step('.no-insert-text').fadeToggle(200, function(){$step('.insert-text').fadeToggle(200, callback);});
     }
-  }
+  };
 
   insertStep = function (id) {
+    const $step = step.$step,
+      $stepAll = step.$stepAll;
     var modulesInfo = _sequencer.modulesInfo();
     var parser = new DOMParser();
     var addStepUI = stepUI();
-    addStepUI = parser.parseFromString(addStepUI, "text/html").querySelector("div")
+    addStepUI = parser.parseFromString(addStepUI, 'text/html').querySelector('div');
 
-    if ($(step.ui.querySelector('.insertDiv')).length > 0){
-      toggleDiv();
+    if ($step('.insertDiv').length > 0){
+      toggleDiv($step);
     }
     else {
       step.ui
-      .querySelector("div.step")
-      .insertAdjacentElement('afterend',
-        addStepUI
-      );
-      toggleDiv(function(){
-        insertPreview.updatePreviews(step.output, '.insertDiv');
+        .querySelector('div.step')
+        .insertAdjacentElement('afterend',
+          addStepUI
+        );
+      toggleDiv($step, function(){
+        if (step.name === 'load-image') insertPreview.updatePreviews(step.output.src, $step('.insertDiv').getDomElem());
+        else insertPreview.updatePreviews(step.output, $step('.insertDiv').getDomElem());
       });
     }
-
-    $(step.ui.querySelector('.insertDiv .close-insert-box')).off('click').on('click', function(){toggleDiv(function(){})});
     
-    var insertStepSelect = $(step.ui.querySelector('.insert-step-select'));
-    insertStepSelect.html("");
+
+    $step('.insertDiv .close-insert-box').off('click').on('click', function(){
+      toggleDiv($step);
+      $step('.insertDiv').removeClass('insertDiv');
+    });
+    
+    var insertStepSelect = $step('.insert-step-select');
+    insertStepSelect.html('');
+
     // Add modules to the insertStep dropdown
     for (var m in modulesInfo) {
-      if (modulesInfo[m] !== undefined)
+      if (modulesInfo[m] && modulesInfo[m].name)
         insertStepSelect.append(
-          '<option value="' + m + '">' + modulesInfo[m].name + "</option>"
+          '<option value="' + m + '">' + modulesInfo[m].name + '</option>'
         );
     }
+
     insertStepSelect.selectize({
       sortField: 'text'
     });
-    $(step.ui.querySelector('.inserDiv .add-step-btn')).prop('disabled', true);
-    
-    insertStepSelect.append('<option value="" disabled selected>Select a Module</option>');
-    $(step.ui.querySelector('.insertDiv .radio-group .radio')).on("click", function () {
-      $(this).parent().find('.radio').removeClass('selected');
-      $(this).addClass('selected');
-      newStep = $(this).attr('data-value');
-      $(step.ui.querySelector('.insert-step-select')).val(newStep);
-      selectNewStepUi();
-      insert(id);
-      $(this).removeClass('selected');
+
+    $('.insertDiv .radio-group .radio').on('click', function () {
+      var newStepName = $(this).attr('data-value');
+      id = $($step('.insertDiv').parents()[3]).prevAll().length;
+      insert(id, $step, newStepName);
     });
-    insertStepSelect.on('change', selectNewStepUi);
-    $(step.ui.querySelector('.insertDiv .add-step-btn')).on('click', function () { insert(id) });
-  }
 
-  function insert(id) {
+    $step('.insertDiv .add-step-btn').on('click', function () {
+      var newStepName = insertStepSelect.val();
+      id = $($step('.insertDiv').parents()[3]).prevAll().length;
+      insert(id, $step, newStepName); });
+  };
 
-    options = options || {};
-    var insertStepSelect = $(step.ui.querySelector('.insert-step-select'));
-    if (insertStepSelect.val() == "none") return;
-
-    var newStepName = insertStepSelect.val()
-    toggleDiv();
-    var sequenceLength = 1;
-    if (sequencer.sequences[newStepName]) {
-      sequenceLength = sequencer.sequences[newStepName].length;
-    } else if (sequencer.modules[newStepName][1]["length"]) {
-      sequenceLength = sequencer.modules[newStepName][1]["length"];
-    }
-    _sequencer
-      .insertSteps(id + 1, newStepName).run({ index: id });
-
-    // add to URL hash too
-    urlHash.setUrlHashParameter("steps", _sequencer.toString());
-
+  function insert(id, $step, newStepName) {
+    toggleDiv($step);
+    $step('.insertDiv').removeClass('insertDiv');
+    _sequencer.insertSteps(id + 1, newStepName).run({ index: id });
+    urlHash.setUrlHashParameter('steps', _sequencer.toString());
   }
 
   return {
     insertStep
-  }
+  };
 }
 module.exports = IntermediateHtmlStepUi;
 
-
-},{"./insertPreview.js":5,"./urlHash.js":8}],7:[function(require,module,exports){
+},{"./insertPreview.js":5,"./urlHash.js":9}],7:[function(require,module,exports){
 function mapHtmlTypes(inputInfo){
   var htmlType;
   switch(inputInfo.type.toLowerCase()){
-    case 'integer':
-      htmlType = inputInfo.min != undefined ? 'range' : 'number';
-      break;
-    case 'string':
-      htmlType = 'text';
-      break;
-    case 'select':
-      htmlType = 'select';
-      break;
-    case 'percentage':
-      htmlType = 'number';
-      break;
-    case 'float':
-      htmlType = inputInfo.min != undefined ? 'range' : 'text';
-      break;
-    default:
-      htmlType = 'text';
-      break;
+  case 'integer':
+    htmlType = inputInfo.min != undefined ? 'range' : 'number';
+    break;
+  case 'string':
+    htmlType = 'text';
+    break;
+  case 'select':
+    htmlType = 'select';
+    break;
+  case 'percentage':
+    htmlType = 'number';
+    break;
+  case 'float':
+    htmlType = inputInfo.min != undefined ? 'range' : 'text';
+    break;
+  default:
+    htmlType = 'text';
+    break;
   }
   var response = inputInfo;
   response.type = htmlType;
@@ -959,6 +1127,75 @@ function mapHtmlTypes(inputInfo){
 module.exports = mapHtmlTypes;
 
 },{}],8:[function(require,module,exports){
+/**
+ * @method $scope
+ * @param {"DOMNode"} scope A DOM Node as the scope
+ */
+function $scope(scope) {
+  return function(queryString){
+    var element = $(scope.querySelector(queryString));
+
+    element.elem = function(queryString){
+      return new $scope(scope)(queryString);
+    };
+    element.elemAll = function(queryString){
+      return new $scopeAll(scope)(queryString);
+    };
+    element.getDomElem = function(i = 0){
+      return element[i];
+    };
+    element.getScope = () => scope;
+
+    return element;
+  };
+}
+
+/**
+ * @method $scopeAll
+ * @param {"DOMNode"} scope A DOM Node as the scope
+ */
+function $scopeAll(scope){
+  return function(queryString){
+    var element = $(scope.querySelectorAll(queryString));
+
+    element.elem = function(queryString){
+      return new $scope(scope)(queryString);
+    };
+    element.elemAll = function(queryString){
+      return new $scopeAll(scope)(queryString);
+    };
+    element.getDomElem = function(i = 0){
+      return element[i];
+    };
+    element.getScope = () => scope;
+
+    return element;
+  };
+}
+
+/**
+ * @method scopeSelector
+ * @description A scoped jQuery selector
+ * @param {"DOMNode"} scope DOM Node as the scope
+ */
+function scopeSelector(scope){
+  return $scope(scope);
+}
+
+/**
+ * @method scopeSelectorAll
+ * @description A scoped jQuery multiple selector
+ * @param {"DOMNode} scope DOM Node as the scope
+ */
+function scopeSelectorAll(scope){
+  return $scopeAll(scope);
+}
+
+module.exports = {
+  scopeSelector,
+  scopeSelectorAll
+};
+},{}],9:[function(require,module,exports){
 function getUrlHashParameter(param) {
 
   var params = getUrlHashParameters();
@@ -1003,13 +1240,13 @@ function setUrlHashParameter(param, value) {
 }
 
 module.exports =  {
-                    getUrlHashParameter: getUrlHashParameter,
-                    setUrlHashParameter: setUrlHashParameter,
-                    getUrlHashParameters: getUrlHashParameters,
-                    setUrlHashParameters: setUrlHashParameters
-                  }
+  getUrlHashParameter: getUrlHashParameter,
+  setUrlHashParameter: setUrlHashParameter,
+  getUrlHashParameters: getUrlHashParameters,
+  setUrlHashParameters: setUrlHashParameters
+};
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 /**
  * @license
